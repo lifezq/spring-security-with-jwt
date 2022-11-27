@@ -25,10 +25,17 @@ public class IndexController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("身份信息：" + authentication.getPrincipal());
         System.out.println("权限信息：" + authentication.getAuthorities());
-        User grantedAuthorities = (User) authentication.getPrincipal();
-        System.out.println("------" + grantedAuthorities.getUsername());
+        Object grantedAuthorities = authentication.getPrincipal();
 
-        session.setAttribute("loginUser", grantedAuthorities.getUsername());
+        User user = null;
+        if (grantedAuthorities instanceof User) {
+            user = (User) grantedAuthorities;
+        }
+        Object loginUser = session.getAttribute("loginUser");
+        if (loginUser == null && user != null) {
+            session.setAttribute("loginUser", user.getUsername());
+        }
+
         return "/index";
     }
 }
