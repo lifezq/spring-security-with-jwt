@@ -5,6 +5,7 @@ import com.yql.springsecuritywithjwt.mybatis.mapper.SysFunc;
 import com.yql.springsecuritywithjwt.mybatis.mapper.SysRoleFunc;
 import com.yql.springsecuritywithjwt.mybatis.service.SysFuncService;
 import com.yql.springsecuritywithjwt.mybatis.service.SysRoleFuncService;
+import com.yql.springsecuritywithjwt.security.access.vote.AllMatchRoleVoter;
 import com.yql.springsecuritywithjwt.security.core.userdetails.CustomJdbcUserDetailsService;
 import com.yql.springsecuritywithjwt.security.web.access.intercept.CustomFilterSecurityInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.access.vote.AffirmativeBased;
-import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -94,7 +94,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private AccessDecisionManager accessDecisionManager() {
         List<AccessDecisionVoter<? extends Object>> voters = new ArrayList<>();
-        voters.add(new RoleVoter());
+        voters.add(new AllMatchRoleVoter());
 
         return new AffirmativeBased(voters);
     }
