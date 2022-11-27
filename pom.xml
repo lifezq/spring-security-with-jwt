@@ -122,7 +122,7 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
                 <configuration>
-                    <url>jdbc:mysql://localhost:3306/spring_security_with_jwt?characterEncoding=utf8&amp;serverTimezone=UTC</url>
+                    <url>jdbc:mysql://localhost:3306/spring_security_with_jwt?characterEncoding=UTF8&amp;serverTimezone=UTC</url>
                     <user>root</user>
                     <password>123456</password>
                     <encoding>utf-8</encoding>
