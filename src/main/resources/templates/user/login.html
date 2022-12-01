@@ -1,27 +1,50 @@
 <th:block th:include="/header"></th:block>
 
-<div class="container">
+<div class="container  center-block">
 
-    <div class="jumbotron">
+    <div class="jumbotron col-md-6" style="float: none;margin:0 auto;">
+        <div class="center-block">
         <!-- Main component for a primary marketing message or call to action -->
         <form th:action="@{/login}" method="post" th:method="post" class="form-signin">
             <h2 class="form-signin-heading">Please sign in</h2>
-            <label for="inputUsername" class="sr-only">Username</label>
-            <input type="text" id="inputUsername" class="form-control" placeholder="Username" name="username"
-                   required=""
-                   autofocus="">
+            <div class="form-group">
+                <label for="inputUsername" class="sr-only">Username</label>
+                <input type="text" id="inputUsername" class="form-control" placeholder="Username" name="username"
+                       required=""
+                       autofocus="">
+            </div>
+            <div class="form-group">
             <label for="inputPassword" class="sr-only">Password</label>
             <input type="password" id="inputPassword" class="form-control" placeholder="Password" name="password"
                    required="">
+            </div>
+            <div class="form-group">
+
+                    <label for="inputCaptcha" class="sr-only">Captcha</label>
+                    <input type="text" id="inputCaptcha" class="form-control" placeholder="Captcha" name="captcha"
+                           required="">
+
+                    <a href="#" id="captcha_link" onclick="changeCaptcha();"><img id="captcha_img" src="#" th:src="@{/captcha/generate}"/></a>
+
+            </div>
+            <div class="form-group">
             <div class="checkbox">
                 <label>
-                    <input type="checkbox" value="remember-me"> Remember me
+                    <input type="checkbox" name="remember-me"> Remember me
                 </label>
+            </div>
             </div>
             <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
         </form>
+        </div>
     </div>
 
 </div> <!-- /container -->
 
+
 <th:block th:include="/footer"></th:block>
+<script type="application/javascript">
+    function changeCaptcha(){
+        $("#captcha_img").attr("src","/captcha/generate?rand="+Math.random());
+    }
+</script>

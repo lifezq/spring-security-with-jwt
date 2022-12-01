@@ -40,16 +40,17 @@
             <ul class="nav navbar-nav navbar-right">
 
                 <th:block th:if="${session.loginUser}">
-                    <li> 您好，<span th:text="${session.loginUser}"></span></li>
+                    <li> 您好，<span th:text="${session.loginUser}"></span>&nbsp;</li>
+                    <li>
+                        <form th:action="@{/logout}" action="/logout" th:method="post" method="post">
+                            <input type="submit" value="退出"/>
+                        </form>
+                    </li>
                 </th:block>
                 <th:block th:unless="${session.loginUser}">
                     <li><a href="/user/login"> 登录</a></li>
                 </th:block>
-                <li>
-                    <form th:action="@{/logout}" action="/logout" th:method="post" method="post">
-                        <input type="submit" value="退出"/>
-                    </form>
-                </li>
+
             </ul>
         </div><!--/.nav-collapse -->
     </div>

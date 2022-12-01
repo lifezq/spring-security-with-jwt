@@ -8,6 +8,7 @@ import com.yql.springsecuritywithjwt.mybatis.service.SysRoleFuncService;
 import com.yql.springsecuritywithjwt.security.access.vote.AllMatchRoleVoter;
 import com.yql.springsecuritywithjwt.security.core.userdetails.CustomJdbcUserDetailsService;
 import com.yql.springsecuritywithjwt.security.web.access.intercept.CustomFilterSecurityInterceptor;
+import com.yql.springsecuritywithjwt.security.web.authentication.UsernamePasswordCaptchaAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionManager;
@@ -23,6 +24,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.access.intercept.DefaultFilterInvocationSecurityMetadataSource;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.*;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
@@ -38,12 +41,15 @@ import java.util.stream.Collectors;
 @EnableWebSecurity
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+    private final static String DEFAULT_REMEMBER_ME_KEY = "default remember me key";
+
     @Autowired
     private SysRoleFuncService sysRoleFuncService;
     @Autowired
     private SysFuncService sysFuncService;
     @Autowired
     private CustomJdbcUserDetailsService customJdbcUserDetailsService;
+
 
 //    @Override
 //    public void configure(WebSecurity web) throws Exception {
@@ -54,7 +60,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .mvcMatchers("/static/**")
+                .antMatchers("/static/**", "/captcha/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
@@ -66,13 +72,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .failureUrl("/user/loginFailed")
                 .permitAll()
                 .and()
+                .rememberMe()
+                .key(DEFAULT_REMEMBER_ME_KEY)
+                .userDetailsService(userDetailsService())
+                .tokenValiditySeconds(14 * 24 * 60 * 60)
+                .and()
                 .logout()
                 .logoutSuccessUrl("/index")
                 .and()
-                .csrf().disable()
-        ;
+                .csrf().disable();
 
+        http.addFilterAt(usernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class);
+
     }
 
     @Override
@@ -82,6 +94,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private UserDetailsService customJdbcUserDetailsService() {
         return this.customJdbcUserDetailsService;
+    }
+
+    private UsernamePasswordCaptchaAuthenticationFilter usernamePasswordAuthenticationFilter() throws Exception {
+        UsernamePasswordCaptchaAuthenticationFilter authenticationFilter = new UsernamePasswordCaptchaAuthenticationFilter();
+        authenticationFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler());
+        authenticationFilter.setAuthenticationFailureHandler(authenticationFailureHandler());
+        authenticationFilter.setAuthenticationManager(authenticationManager());
+        authenticationFilter.setRememberMeServices(new TokenBasedRememberMeServices(DEFAULT_REMEMBER_ME_KEY, userDetailsService()));
+        return authenticationFilter;
     }
 
     private FilterSecurityInterceptor customFilterSecurityInterceptor() throws Exception {
@@ -97,6 +118,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         voters.add(new AllMatchRoleVoter());
 
         return new AffirmativeBased(voters);
+    }
+
+    private AuthenticationSuccessHandler authenticationSuccessHandler() {
+        SavedRequestAwareAuthenticationSuccessHandler authenticationSuccessHandler = new SavedRequestAwareAuthenticationSuccessHandler();
+        authenticationSuccessHandler.setDefaultTargetUrl("/index");
+        return authenticationSuccessHandler;
+    }
+
+    private AuthenticationFailureHandler authenticationFailureHandler() {
+        SimpleUrlAuthenticationFailureHandler authenticationFailureHandler = new SimpleUrlAuthenticationFailureHandler();
+        authenticationFailureHandler.setDefaultFailureUrl("/user/loginFailed");
+        return authenticationFailureHandler;
     }
 
 
