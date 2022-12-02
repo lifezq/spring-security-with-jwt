@@ -100,7 +100,6 @@
             <version>${hutool.version}</version>
         </dependency>
 
-
     </dependencies>
 
     <build>

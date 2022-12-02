@@ -20,8 +20,8 @@ public class CustomFilterSecurityInterceptor extends FilterSecurityInterceptor {
 
     @Override
     public void invoke(FilterInvocation fi) throws IOException, ServletException {
-        System.out.println(fi.getRequest().getAttribute(FILTER_APPLIED));
-        System.out.println(isObserveOncePerRequest());
+//        System.out.println(fi.getRequest().getAttribute(FILTER_APPLIED));
+//        System.out.println(isObserveOncePerRequest());
 
         if ((fi.getRequest() != null)
                 && (fi.getRequest().getAttribute(FILTER_APPLIED) != null)

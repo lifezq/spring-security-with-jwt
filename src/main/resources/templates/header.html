@@ -39,15 +39,16 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
 
-                <th:block th:if="${session.loginUser}">
-                    <li> 您好，<span th:text="${session.loginUser}"></span>&nbsp;</li>
+                <li><span th:text="${today}"></span>&nbsp;&nbsp;</li>
+                <th:block th:if="${request.getAttribute('username')}">
+                    <li> 您好，<span th:text="${request.getAttribute('username')}"></span>&nbsp;</li>
                     <li>
                         <form th:action="@{/logout}" action="/logout" th:method="post" method="post">
                             <input type="submit" value="退出"/>
                         </form>
                     </li>
                 </th:block>
-                <th:block th:unless="${session.loginUser}">
+                <th:block th:unless="${request.getAttribute('username')}">
                     <li><a href="/user/login"> 登录</a></li>
                 </th:block>
 

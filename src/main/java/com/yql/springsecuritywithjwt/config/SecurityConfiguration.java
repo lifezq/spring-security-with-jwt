@@ -1,6 +1,8 @@
 package com.yql.springsecuritywithjwt.config;
 
 
+import cn.hutool.core.util.StrUtil;
+import com.yql.springsecuritywithjwt.enums.jwt.Jwt;
 import com.yql.springsecuritywithjwt.mybatis.mapper.SysFunc;
 import com.yql.springsecuritywithjwt.mybatis.mapper.SysRoleFunc;
 import com.yql.springsecuritywithjwt.mybatis.service.SysFuncService;
@@ -8,9 +10,12 @@ import com.yql.springsecuritywithjwt.mybatis.service.SysRoleFuncService;
 import com.yql.springsecuritywithjwt.security.access.vote.AllMatchRoleVoter;
 import com.yql.springsecuritywithjwt.security.core.userdetails.CustomJdbcUserDetailsService;
 import com.yql.springsecuritywithjwt.security.web.access.intercept.CustomFilterSecurityInterceptor;
+import com.yql.springsecuritywithjwt.security.web.access.intercept.jwt.JwtFilterSecurityInterceptor;
 import com.yql.springsecuritywithjwt.security.web.authentication.UsernamePasswordCaptchaAuthenticationFilter;
+import com.yql.springsecuritywithjwt.security.web.handler.UsernamePasswordAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
@@ -20,6 +25,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.access.intercept.DefaultFilterInvocationSecurityMetadataSource;
@@ -29,7 +35,6 @@ import org.springframework.security.web.authentication.rememberme.TokenBasedReme
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,6 +54,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private SysFuncService sysFuncService;
     @Autowired
     private CustomJdbcUserDetailsService customJdbcUserDetailsService;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
 
 //    @Override
@@ -65,6 +72,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .anyRequest()
                 .authenticated()
                 .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
                 .formLogin()
                 .loginPage("/user/login")
                 .loginProcessingUrl("/login")
@@ -73,15 +83,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
                 .rememberMe()
+                .rememberMeServices(tokenBasedRememberMeServices())
                 .key(DEFAULT_REMEMBER_ME_KEY)
                 .userDetailsService(userDetailsService())
                 .tokenValiditySeconds(14 * 24 * 60 * 60)
                 .and()
                 .logout()
                 .logoutSuccessUrl("/index")
+                .deleteCookies(Jwt.JWT_TOKEN_NAME.getValue())
                 .and()
                 .csrf().disable();
 
+        http.addFilterBefore(jwtFilterSecurityInterceptor(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAt(usernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class);
 
@@ -96,14 +109,25 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return this.customJdbcUserDetailsService;
     }
 
+    private JwtFilterSecurityInterceptor jwtFilterSecurityInterceptor() {
+        JwtFilterSecurityInterceptor jwtFilterSecurityInterceptor = new JwtFilterSecurityInterceptor();
+        jwtFilterSecurityInterceptor.setCustomJdbcUserDetailsService(this.customJdbcUserDetailsService);
+        return jwtFilterSecurityInterceptor;
+    }
+
     private UsernamePasswordCaptchaAuthenticationFilter usernamePasswordAuthenticationFilter() throws Exception {
         UsernamePasswordCaptchaAuthenticationFilter authenticationFilter = new UsernamePasswordCaptchaAuthenticationFilter();
         authenticationFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler());
         authenticationFilter.setAuthenticationFailureHandler(authenticationFailureHandler());
         authenticationFilter.setAuthenticationManager(authenticationManager());
-        authenticationFilter.setRememberMeServices(new TokenBasedRememberMeServices(DEFAULT_REMEMBER_ME_KEY, userDetailsService()));
+        authenticationFilter.setRememberMeServices(tokenBasedRememberMeServices());
         return authenticationFilter;
     }
+
+    private RememberMeServices tokenBasedRememberMeServices() {
+        return new TokenBasedRememberMeServices(DEFAULT_REMEMBER_ME_KEY, userDetailsService());
+    }
+
 
     private FilterSecurityInterceptor customFilterSecurityInterceptor() throws Exception {
         CustomFilterSecurityInterceptor filterSecurityInterceptor = new CustomFilterSecurityInterceptor();
@@ -121,7 +145,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private AuthenticationSuccessHandler authenticationSuccessHandler() {
-        SavedRequestAwareAuthenticationSuccessHandler authenticationSuccessHandler = new SavedRequestAwareAuthenticationSuccessHandler();
+        UsernamePasswordAuthenticationSuccessHandler authenticationSuccessHandler = new UsernamePasswordAuthenticationSuccessHandler();
         authenticationSuccessHandler.setDefaultTargetUrl("/index");
         return authenticationSuccessHandler;
     }
@@ -176,11 +200,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
      * @return ant风格地址
      */
     private String determineAntUrl(String url) {
-        if (StringUtils.isEmpty(url)) {
+
+        if (StrUtil.isEmpty(url)) {
             return null;
         }
 
-        if (StringUtils.endsWithIgnoreCase(url, "/")) {
+        if (StrUtil.endWithIgnoreCase(url, "/")) {
             return url.substring(0, url.lastIndexOf("/")) + "/**";
         }
 
