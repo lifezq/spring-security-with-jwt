@@ -14,6 +14,7 @@ import com.yql.springsecuritywithjwt.security.web.access.intercept.jwt.JwtFilter
 import com.yql.springsecuritywithjwt.security.web.authentication.UsernamePasswordCaptchaAuthenticationFilter;
 import com.yql.springsecuritywithjwt.security.web.handler.UsernamePasswordAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.AccessDecisionManager;
@@ -32,6 +33,7 @@ import org.springframework.security.web.access.intercept.DefaultFilterInvocation
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
@@ -63,6 +65,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 //        web.ignoring().antMatchers("/static/**", "/css/**", "/js/**", "/plugins/**", "/images/**", "/fonts/**");
 //    }
 
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -72,9 +79,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .anyRequest()
                 .authenticated()
                 .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                                .maximumSessions(1)
+                                .maxSessionsPreventsLogin(true)
+                )
                 .formLogin()
                 .loginPage("/user/login")
                 .loginProcessingUrl("/login")
@@ -90,11 +99,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .logout()
                 .logoutSuccessUrl("/index")
-                .deleteCookies(Jwt.JWT_TOKEN_NAME.getValue())
+                .deleteCookies("JSESSIONID", Jwt.JWT_TOKEN_NAME.getValue())
+                .and()
+                .cors()
                 .and()
                 .csrf().disable();
 
-        http.addFilterBefore(jwtFilterSecurityInterceptor(), UsernamePasswordAuthenticationFilter.class);
+//        http.addFilterBefore(jwtFilterSecurityInterceptor(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAt(usernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class);
 

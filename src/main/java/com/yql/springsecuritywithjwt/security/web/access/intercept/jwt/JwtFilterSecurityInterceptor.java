@@ -32,8 +32,6 @@ public class JwtFilterSecurityInterceptor extends OncePerRequestFilter {
 
             Object username = jwtObject.getPayload("username");
 
-            request.setAttribute("username", username);
-            
             //当token中的username不为空时进行验证token是否是有效的token
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 //token中username不为空，并且Context中的认证为空，进行token验证
