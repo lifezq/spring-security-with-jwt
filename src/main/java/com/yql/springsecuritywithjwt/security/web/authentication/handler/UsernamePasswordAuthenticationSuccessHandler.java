@@ -1,4 +1,4 @@
-package com.yql.springsecuritywithjwt.security.web.handler;
+package com.yql.springsecuritywithjwt.security.web.authentication.handler;
 
 import cn.hutool.jwt.JWTUtil;
 import com.yql.springsecuritywithjwt.enums.jwt.Jwt;

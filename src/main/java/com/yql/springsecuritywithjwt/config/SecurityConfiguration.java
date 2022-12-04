@@ -12,7 +12,7 @@ import com.yql.springsecuritywithjwt.security.core.userdetails.CustomJdbcUserDet
 import com.yql.springsecuritywithjwt.security.web.access.intercept.CustomFilterSecurityInterceptor;
 import com.yql.springsecuritywithjwt.security.web.authentication.JwtSecurityFilter;
 import com.yql.springsecuritywithjwt.security.web.authentication.UsernamePasswordCaptchaAuthenticationFilter;
-import com.yql.springsecuritywithjwt.security.web.handler.UsernamePasswordAuthenticationSuccessHandler;
+import com.yql.springsecuritywithjwt.security.web.authentication.handler.UsernamePasswordAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
