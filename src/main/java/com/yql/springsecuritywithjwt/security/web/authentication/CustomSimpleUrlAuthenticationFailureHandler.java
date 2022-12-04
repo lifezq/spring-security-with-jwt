@@ -28,19 +28,6 @@ public class CustomSimpleUrlAuthenticationFailureHandler extends SimpleUrlAuthen
         super.onAuthenticationFailure(request, response, exception);
 
         this.logger.info(String.format("IP %s 于 %s 尝试登录系统失败，失败原因：%s", request.getRemoteHost(), LocalDateTime.now(), exception.getMessage()));
-
-        try {
-            // 发邮件
-            System.out.println("发送邮件...");
-
-            // 发短信
-            System.out.println("发送短信...");
-
-            // 发微信
-            System.out.println("发送微信...");
-        } catch (Exception ex) {
-            this.logger.error(ex.getMessage(), ex);
-        }
     }
 
 

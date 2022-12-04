@@ -24,19 +24,6 @@ public class CustomLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
         super.onLogoutSuccess(request, response, authentication);
 
         this.logger.info(String.format("IP %s，用户 %s， 于 %s 退出系统。", request.getRemoteHost(), authentication.getName(), LocalDateTime.now()));
-
-        try {
-            // 发邮件
-            System.out.println("发送邮件...");
-
-            // 发短信
-            System.out.println("发送短信...");
-
-            // 发微信
-            System.out.println("发送微信...");
-        } catch (Exception ex) {
-            this.logger.error(ex.getMessage(), ex);
-        }
     }
 
 }
