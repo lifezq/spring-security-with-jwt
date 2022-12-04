@@ -31,8 +31,6 @@ public class UsernamePasswordAuthenticationSuccessHandler extends SavedRequestAw
         String jwtToken = JWTUtil.createToken(payloads, Jwt.JWT_SECRET_KEY.getValue().getBytes(StandardCharsets.UTF_8));
         this.setCookie(jwtToken, request, response);
 
-        request.getSession(false).setAttribute("loginUser", user.getUsername());
-
         super.onAuthenticationSuccess(request, response, authentication);
     }
 

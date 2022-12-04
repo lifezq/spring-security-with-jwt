@@ -328,6 +328,7 @@ public abstract class AbstractCaptchaAuthenticationProcessingFilter extends Gene
             eventPublisher.publishEvent(new InteractiveAuthenticationSuccessEvent(
                     authResult, this.getClass()));
         }
+        
 
         successHandler.onAuthenticationSuccess(request, response, authResult);
     }

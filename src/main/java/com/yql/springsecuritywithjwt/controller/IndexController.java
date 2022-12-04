@@ -17,11 +17,13 @@ import javax.servlet.http.HttpSession;
 @Controller
 public class IndexController {
 
+
     @GetMapping("/index")
     public String index(HttpSession session) {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        System.out.println("身份信息：" + authentication.getPrincipal());
 //        System.out.println("权限信息：" + authentication.getAuthorities());
+
         return "/index";
     }
 }

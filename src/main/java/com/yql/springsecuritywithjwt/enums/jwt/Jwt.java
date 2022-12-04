@@ -1,5 +1,10 @@
 package com.yql.springsecuritywithjwt.enums.jwt;
 
+import cn.hutool.core.util.StrUtil;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+
 public enum Jwt {
     JWT_TOKEN_NAME("JwtAuthorization", "token name"),
     JWT_SECRET_KEY("my_jwt_secret_key", "my jwt secret key");
@@ -26,5 +31,19 @@ public enum Jwt {
 
     public void setDesc(String desc) {
         this.desc = desc;
+    }
+
+    public static String getTokenFromRequest(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return "";
+        }
+
+        for (Cookie cookie : cookies) {
+            if (StrUtil.equals(JWT_TOKEN_NAME.getValue(), cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return "";
     }
 }

@@ -10,7 +10,7 @@ import com.yql.springsecuritywithjwt.mybatis.service.SysRoleFuncService;
 import com.yql.springsecuritywithjwt.security.access.vote.AllMatchRoleVoter;
 import com.yql.springsecuritywithjwt.security.core.userdetails.CustomJdbcUserDetailsService;
 import com.yql.springsecuritywithjwt.security.web.access.intercept.CustomFilterSecurityInterceptor;
-import com.yql.springsecuritywithjwt.security.web.access.intercept.jwt.JwtFilterSecurityInterceptor;
+import com.yql.springsecuritywithjwt.security.web.authentication.JwtSecurityFilter;
 import com.yql.springsecuritywithjwt.security.web.authentication.UsernamePasswordCaptchaAuthenticationFilter;
 import com.yql.springsecuritywithjwt.security.web.handler.UsernamePasswordAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,9 +80,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authenticated()
                 .and()
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                                 .maximumSessions(1)
-                                .maxSessionsPreventsLogin(true)
+                                .maxSessionsPreventsLogin(false)
                 )
                 .formLogin()
                 .loginPage("/user/login")
@@ -105,7 +105,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable();
 
-//        http.addFilterBefore(jwtFilterSecurityInterceptor(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtSecurityFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAt(usernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class);
 
@@ -120,8 +120,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return this.customJdbcUserDetailsService;
     }
 
-    private JwtFilterSecurityInterceptor jwtFilterSecurityInterceptor() {
-        JwtFilterSecurityInterceptor jwtFilterSecurityInterceptor = new JwtFilterSecurityInterceptor();
+    private JwtSecurityFilter jwtSecurityFilter() throws Exception {
+        JwtSecurityFilter jwtFilterSecurityInterceptor = new JwtSecurityFilter(authenticationManager());
         jwtFilterSecurityInterceptor.setCustomJdbcUserDetailsService(this.customJdbcUserDetailsService);
         return jwtFilterSecurityInterceptor;
     }

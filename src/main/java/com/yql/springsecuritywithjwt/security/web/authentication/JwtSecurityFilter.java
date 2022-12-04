@@ -1,32 +1,41 @@
-package com.yql.springsecuritywithjwt.security.web.access.intercept.jwt;
+package com.yql.springsecuritywithjwt.security.web.authentication;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import com.yql.springsecuritywithjwt.enums.jwt.Jwt;
 import com.yql.springsecuritywithjwt.security.core.userdetails.CustomJdbcUserDetailsService;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class JwtFilterSecurityInterceptor extends OncePerRequestFilter {
+public class JwtSecurityFilter extends BasicAuthenticationFilter {
     private CustomJdbcUserDetailsService customJdbcUserDetailsService;
+
+    public JwtSecurityFilter(AuthenticationManager authenticationManager) {
+        super(authenticationManager);
+    }
+
+    public JwtSecurityFilter(AuthenticationManager authenticationManager, AuthenticationEntryPoint authenticationEntryPoint) {
+        super(authenticationManager, authenticationEntryPoint);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
 
-        String authToken = this.getTokenFromRequest(request);
+        String authToken = Jwt.getTokenFromRequest(request);
         if (!StrUtil.isEmpty(authToken)) {
             JWT jwtObject = JWTUtil.parseToken(authToken);
 
@@ -43,8 +52,11 @@ public class JwtFilterSecurityInterceptor extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
+                    if (request.getAttribute("loginUser") == null) {
+                        request.setAttribute("loginUser", userDetails.getUsername());
+                    }
+                    
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
 
                     //将authentication放入SecurityContextHolder中
                     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -55,19 +67,6 @@ public class JwtFilterSecurityInterceptor extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String getTokenFromRequest(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return "";
-        }
-
-        for (Cookie cookie : cookies) {
-            if (StrUtil.equals(Jwt.JWT_TOKEN_NAME.getValue(), cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return "";
-    }
 
     public void setCustomJdbcUserDetailsService(CustomJdbcUserDetailsService customJdbcUserDetailsService) {
         this.customJdbcUserDetailsService = customJdbcUserDetailsService;
