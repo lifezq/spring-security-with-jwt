@@ -2,6 +2,8 @@ package com.yql.springsecuritywithjwt.controller;
 
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.CircleCaptcha;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,11 +14,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
+@Api(tags = "验证码模块")
 @RestController
 public class CaptchaController {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
-
+    
+    @ApiOperation(value = "获取验证码")
     @GetMapping("/captcha/generate")
     public void captchaGenerate(HttpSession session, HttpServletResponse response) {
         response.setHeader("Pragma", "No-cache");

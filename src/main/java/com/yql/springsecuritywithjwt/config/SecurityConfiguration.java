@@ -74,7 +74,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/static/**", "/captcha/**")
+                .antMatchers("/static/**", "/captcha/**", "/doc.html", "/doc.html/**", "/webjars/**", "/v2/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
